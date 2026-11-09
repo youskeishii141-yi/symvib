@@ -473,7 +473,7 @@ python tests/sweep_space_groups.py # 230 空間群・530 設定の網羅
 引用は任意です。引用していただける場合は、次の DOI をお使いください (常に最新版を指します。
 各バージョン固有の DOI も Zenodo にあります)。
 
-> Ishii, Y. SymVib [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.24085930
+> Yosuke Ishii. SymVib [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.24085930
 
 APA / BibTeX 形式は、リポジトリの「Cite this repository」(GitHub が [CITATION.cff](CITATION.cff) から
 作るもの) や [Zenodo の記録](https://doi.org/10.5281/zenodo.24085930) からも取得できます。
