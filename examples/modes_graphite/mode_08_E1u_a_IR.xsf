@@ -1,0 +1,17 @@
+# Mode 8: E1u  Activity: IR
+# Displacement: xy (in-plane)
+# Direction: symmetry-determined (exact)
+# Degenerate component 1/2
+# Sites: C1(b), C2(c)
+# VESTA: Properties -> Vectors -> Show vectors
+CRYSTAL
+PRIMVEC
+      2.461000     0.000000     0.000000
+     -1.230500     2.131289     0.000000
+      0.000000     0.000000     6.708000
+PRIMCOORD
+  4  1
+    6     0.000000     0.000000     1.677000    0.200000   0.000000  -0.000000
+    6     0.000000     0.000000     5.031000    0.200000  -0.000000  -0.000000
+    6     0.000000     1.420859     1.677000   -0.200000   0.000000  -0.000000
+    6     1.230500     0.710430     5.031000   -0.200000   0.000000  -0.000000

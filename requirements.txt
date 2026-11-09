@@ -1,0 +1,8 @@
+# 解析本体 (CLI / GUI 共通)
+numpy>=1.21
+pymatgen>=2023.1.1      # 構造ファイルの読み込み・分子点群記号
+spglib>=2.0             # 結晶の空間群判定
+spgrep>=0.3             # 結晶の既約表現
+
+# GUI (vibration_gui.py)
+matplotlib>=3.7

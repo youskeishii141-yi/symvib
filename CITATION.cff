@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: >-
+  Citation is not required. If this software was useful for your teaching or research,
+  you are welcome to cite it as below.
+title: "SymVib"
+type: software
+authors:
+  - family-names: Ishii
+    given-names: Yosuke
+    affiliation: Nagoya Institute of Technology
+version: 2.2.0
+license-url: "https://github.com/youskeishii141-yi/symvib/blob/main/LICENSE"  # MIT + Commons Clause
+repository-code: "https://github.com/youskeishii141-yi/symvib"
+abstract: >-
+  Python tools (GUI and command line) that assign the vibrational modes of isolated molecules
+  (45 point groups) and crystals (Γ-point factor-group analysis for all 230 space groups) to
+  irreducible representations, determine their IR/Raman activity and Raman tensor forms, and
+  write the displacement patterns for visualization in VESTA. Directions fixed by symmetry are
+  distinguished from those that need force constants (estimated with a spring-network model, or
+  obtained from Quantum ESPRESSO forces with the frozen-phonon tool).
+keywords:
+  - group theory
+  - vibrational spectroscopy
+  - Raman
+  - infrared
+  - factor group analysis
+  - phonon
+  - education

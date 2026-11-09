@@ -1,0 +1,18 @@
+# Mode 6: E2g  Activity: Raman
+# Displacement: xy (in-plane)
+# Direction: NETWORK-MODEL GUESS (m>1; 1/d^2 springs) - true eigenvector requires DFT (Stage 2)
+# Degenerate component 1/2
+# Raman tensor: xx, yy, xy
+# Sites: C1(b), C2(c)
+# VESTA: Properties -> Vectors -> Show vectors
+CRYSTAL
+PRIMVEC
+      2.461000     0.000000     0.000000
+     -1.230500     2.131289     0.000000
+      0.000000     0.000000     6.708000
+PRIMCOORD
+  4  1
+    6     0.000000     0.000000     1.677000    0.192911  -0.000105   0.000000
+    6     0.000000     0.000000     5.031000   -0.192911   0.000105   0.000000
+    6     0.000000     1.420859     1.677000   -0.200000  -0.000101   0.000000
+    6     1.230500     0.710430     5.031000    0.200000   0.000101   0.000000

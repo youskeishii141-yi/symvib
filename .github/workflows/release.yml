@@ -1,0 +1,94 @@
+name: Release exe
+
+# v* のタグを push すると、Windows でテスト → PyInstaller で GUI 版をビルド → 起動確認 →
+# SymVib.zip をそのタグのリリースに添付する (リリースがなければ作る)。
+# リリース本文は .github/release_notes/<タグ>.md。
+# 手動実行 (workflow_dispatch) では、選んだブランチの先頭でビルドし、タグがなければ
+# リリース作成と同時にそのコミットへタグを作る。既にリリースがあれば zip を差し替える。
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "添付先のタグ (例 v2.2.0)。なければ作る"
+        required: true
+      dry_run:
+        description: "ビルドと確認だけ行い、リリースは作らない"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-python@v7.1.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Check that the tag matches __version__
+        shell: pwsh
+        run: |
+          $v = (Select-String -Path symvib\__init__.py -Pattern '__version__ = "(.+)"').Matches[0].Groups[1].Value
+          if ("v$v" -ne $env:TAG) { throw "タグ $env:TAG と __version__ $v が一致しません" }
+      - run: python -m pip install -r requirements.txt -r requirements-dev.txt
+      - run: python -m pytest -q
+        env:
+          MPLCONFIGDIR: ${{ runner.temp }}/matplotlib
+      - run: python -m PyInstaller SymVib.spec --noconfirm --clean
+      - name: Smoke test (exe starts and stays up)
+        shell: pwsh
+        run: |
+          $log = Join-Path $env:USERPROFILE "symvib_error.log"
+          Remove-Item $log -ErrorAction SilentlyContinue
+          $p = Start-Process -FilePath "dist\SymVib\SymVib.exe" -PassThru
+          Start-Sleep -Seconds 30
+          if ($p.HasExited) { throw "exe が起動直後に終了しました (exit code $($p.ExitCode))" }
+          Stop-Process -Id $p.Id -Force
+          if (Test-Path $log) { Get-Content $log; throw "起動中にエラーログが書かれました" }
+      - name: Add license and notice files
+        shell: pwsh
+        run: |
+          # 同梱ライブラリ (Python 本体・numpy・pymatgen など) のライセンス表示と本体のライセンス
+          python tools/third_party_notices.py dist\SymVib\THIRD_PARTY_LICENSES.txt
+          if ($LASTEXITCODE -ne 0) { throw "THIRD_PARTY_LICENSES.txt を作れませんでした" }
+          Copy-Item LICENSE, README.md, README.ja.md -Destination dist\SymVib\
+      - name: Zip
+        shell: pwsh
+        run: Compress-Archive -Path "dist\SymVib" -DestinationPath "dist\SymVib.zip" -Force
+      - name: List zip contents
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $z = [System.IO.Compression.ZipFile]::OpenRead("dist\SymVib.zip")
+          $z.Entries | Where-Object { $_.FullName -notmatch "_internal" } | ForEach-Object { $_.FullName }
+          "{0:N1} MB" -f ((Get-Item dist\SymVib.zip).Length / 1MB)
+          $z.Dispose()
+          Get-Content dist\SymVib\THIRD_PARTY_LICENSES.txt -TotalCount 12
+      - name: Attach to release
+        if: ${{ github.event.inputs.dry_run != 'true' }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $notes = ".github\release_notes\$env:TAG.md"
+          gh release view $env:TAG *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $env:TAG dist\SymVib.zip --clobber
+          } elseif (Test-Path $notes) {
+            gh release create $env:TAG dist\SymVib.zip --title "$env:TAG" --notes-file $notes --target $env:GITHUB_SHA
+          } else {
+            gh release create $env:TAG dist\SymVib.zip --title "$env:TAG" --generate-notes --target $env:GITHUB_SHA
+          }
+          if ($LASTEXITCODE -ne 0) { throw "リリースへの添付に失敗しました" }
+          $global:LASTEXITCODE = 0

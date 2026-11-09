@@ -1,0 +1,41 @@
+name: Full validation (external reference data)
+
+# 外部の参照データ (Bilbao の点群指標表、COD の CIF) は配布物に含めないので、通常のテストでは
+# それらを使う照合はスキップされる。このワークフローは手動実行で、各公式サイトからデータを取得し
+# (COD は tests/data/cod/index.json に記録した ID と同じもの)、照合を含むテストを全部回す。
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pytest-with-reference-data:
+    runs-on: ubuntu-latest
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-python@v7.1.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -r requirements.txt pytest
+      - name: Fetch reference data
+        run: |
+          python tests/fetch_bilbao_tables.py
+          python tests/fetch_cod.py
+      - name: Tests (no skips allowed for the data-dependent tests)
+        run: |
+          set -o pipefail
+          python -m pytest -q -rs tests/test_cod_regression.py tests/test_invariants.py | tee pytest.log
+          if grep -q skipped pytest.log; then echo "reference data were not picked up"; exit 1; fi
+        env:
+          MPLCONFIGDIR: ${{ runner.temp }}/matplotlib
+      - name: All tests
+        run: python -m pytest -q -rs
+        env:
+          MPLCONFIGDIR: ${{ runner.temp }}/matplotlib

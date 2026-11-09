@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+build/
+dist/
+modes_*/
+output_modes/
+qe_fp/
+!examples/modes_*/
+
+# 外部の参照データは配布しない (tests/fetch_bilbao_tables.py, tests/fetch_cod.py で取得)
+tests/data/bilbao/*.json
+tests/data/cod/*.cif

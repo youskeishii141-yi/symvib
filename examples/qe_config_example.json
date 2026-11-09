@@ -1,0 +1,13 @@
+{
+  "pseudo_dir": "/home/you/pseudopotentials",
+  "pseudopotentials": {
+    "Ca": "Ca.pbe-spn-kjpaw_psl.1.0.0.UPF",
+    "C":  "C.pbe-n-kjpaw_psl.1.0.0.UPF",
+    "O":  "O.pbe-n-kjpaw_psl.1.0.0.UPF"
+  },
+  "ecutwfc": 60,
+  "ecutrho": 480,
+  "kpoints": [4, 4, 4],
+  "conv_thr": "1.0d-10",
+  "mixing_beta": 0.7
+}
