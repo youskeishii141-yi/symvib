@@ -4,6 +4,8 @@
 
 **結晶・分子の振動モードを対称性 (群論) で解析するツール**
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24085930.svg)](https://doi.org/10.5281/zenodo.24085930)
+
 結晶・分子の振動モードを、対称性 (群論) に基づいて帰属・可視化するための
 Python ツール群です。DFT フォノン計算を行わずに「どんな振動モードが存在し、
 各原子がどの方向に動くか」を理解することに特化しています。Raman / 赤外スペク
@@ -468,8 +470,13 @@ python tests/sweep_space_groups.py # 230 空間群・530 設定の網羅
 
 ## 引用
 
-引用は任意です。引用していただける場合は、リポジトリの「Cite this repository」(GitHub が
-[CITATION.cff](CITATION.cff) から作る APA / BibTeX 形式) をお使いください。
+引用は任意です。引用していただける場合は、次の DOI をお使いください (常に最新版を指します。
+各バージョン固有の DOI も Zenodo にあります)。
+
+> Ishii, Y. SymVib [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.24085930
+
+APA / BibTeX 形式は、リポジトリの「Cite this repository」(GitHub が [CITATION.cff](CITATION.cff) から
+作るもの) や [Zenodo の記録](https://doi.org/10.5281/zenodo.24085930) からも取得できます。
 
 ## 開発について (AI の利用)
 
