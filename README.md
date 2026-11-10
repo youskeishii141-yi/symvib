@@ -429,6 +429,13 @@ For details of the checks and a list of the errors found, see
 
 ## Changelog
 
+### v2.2.3
+- GUI: in the mode list on the left, the rows were too short and the tops and bottoms of the
+  characters were cut off (most visibly on high-DPI screens). The row height now follows the actual
+  height of the font, and the text size matches the analysis report below. The columns fit their
+  headings and contents, and scrollbars appear only when the list does not fit vertically or
+  horizontally. The border between the list and the report can be dragged up and down.
+
 ### v2.2.2
 - The startup self-check now also covers failures while setting up the window (Tcl/Tk), not only
   failures to load modules (when an interrupted extraction left out `_tcl_data`, only "Can't find a

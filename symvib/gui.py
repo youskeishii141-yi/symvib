@@ -29,6 +29,7 @@ import threading
 import traceback
 import warnings
 import tkinter as tk
+import tkinter.font as tkfont
 from tkinter import filedialog, messagebox, ttk
 from tkinter.scrolledtext import ScrolledText
 
@@ -162,6 +163,17 @@ def _atom_color(z):
     return _COLORS.get(element_symbol(dz), "#a0a0a0") if dz > 0 else "#a0a0a0"
 
 
+class AutoScrollbar(ttk.Scrollbar):
+    """中身が収まるときは隠れ、はみ出したときだけ現れるスクロールバー (grid で配置する)。"""
+
+    def set(self, first, last):
+        if float(first) <= 0.0 and float(last) >= 1.0:
+            self.grid_remove()
+        else:
+            self.grid()
+        super().set(first, last)
+
+
 class VibrationApp(ttk.Frame):
     """メインウィンドウ。"""
 
@@ -184,6 +196,19 @@ class VibrationApp(ttk.Frame):
         self._build_widgets()
         self._set_kind("molecule")
         self.pack(fill="both", expand=True)
+
+    def _fit_columns(self):
+        """モード一覧の各列の幅を、見出しと中身の文字列の幅 (現在のフォント) に合わせる。
+        合計が一覧の幅を超えるときは横のスクロールバーが現れる。"""
+        pad = 2 * self.text_font.measure("0")
+        rows = [self.tree.item(i, "values") for i in self.tree.get_children()]
+        for k, c in enumerate(self._cols):
+            texts = [str(self.tree.heading(c, "text"))]
+            width = self.head_font.measure(texts[0])
+            for values in rows:
+                if k < len(values):
+                    width = max(width, self.text_font.measure(str(values[k])))
+            self.tree.column(c, width=width + pad, minwidth=pad)
 
     # ── 表示言語 ───────────────────────────────────────────────────────
     def _tr(self, widget, key, option="text"):
@@ -282,38 +307,58 @@ class VibrationApp(ttk.Frame):
         self.summary_var = tk.StringVar(value=t("gui.start"))
         ttk.Label(left, textvariable=self.summary_var, wraplength=520,
                   justify="left").pack(fill="x", pady=(0, 4))
-        cols = ("no", "label", "deg", "activity", "direction", "tensor")
-        widths = (36, 80, 44, 90, 110, 260)
-        tree_frame = ttk.Frame(left)
+        # モード一覧とレポートは同じフォント・同じ大きさで表示する。行の高さは
+        # フォントの実際の高さ (画面の拡大率を反映したピクセル数) から決める
+        # (固定のピクセル値だと、高 DPI の画面で文字の上下が行からはみ出して切れる)
+        self.text_font = tkfont.Font(self, font=_report_font(self))
+        self.head_font = tkfont.Font(self, font=_report_font(self))
+        self.head_font.configure(weight="bold")
+        line = self.text_font.metrics("linespace")
+        style = ttk.Style(self)
+        style.configure("Modes.Treeview", font=self.text_font,
+                        rowheight=line + max(6, line // 3))
+        style.configure("Modes.Treeview.Heading", font=self.head_font)
+        self._cols = ("no", "label", "deg", "activity", "direction", "tensor")
+        # 一覧 (+凡例) とレポートの境目は上下にドラッグして動かせる
+        split = ttk.PanedWindow(left, orient="vertical")
+        split.pack(fill="both", expand=True)
+        upper = ttk.Frame(split)
+        split.add(upper, weight=1)
+        tree_frame = ttk.Frame(upper)
         tree_frame.pack(fill="both", expand=True)
-        self.tree = ttk.Treeview(tree_frame, columns=cols, show="headings", height=14,
-                                 selectmode="browse")
-        for c, w in zip(cols, widths):
-            self.tree.column(c, width=w, anchor="w" if c == "tensor" else "center",
-                             stretch=(c == "tensor"))
+        tree_frame.rowconfigure(0, weight=1)
+        tree_frame.columnconfigure(0, weight=1)
+        self.tree = ttk.Treeview(tree_frame, columns=self._cols, show="headings", height=8,
+                                 selectmode="browse", style="Modes.Treeview")
+        for c in self._cols:
+            self.tree.column(c, anchor="w" if c == "tensor" else "center", stretch=False)
 
         def relabel_heads():
-            for c, h in zip(cols, t("gui.cols").split("|")):
+            for c, h in zip(self._cols, t("gui.cols").split("|")):
                 self.tree.heading(c, text=h)
+            self._fit_columns()
         relabel_heads()
         self._i18n.append(relabel_heads)
         for act, color in _ACTIVITY_COLORS.items():
             self.tree.tag_configure(act, foreground=color)
         self.tree.tag_configure("acoustic", foreground="#999999")
-        sb = ttk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=sb.set)
-        self.tree.pack(side="left", fill="both", expand=True)
-        sb.pack(side="right", fill="y")
+        # 一覧が縦・横に収まらないときだけスクロールバーを出す
+        ysb = AutoScrollbar(tree_frame, orient="vertical", command=self.tree.yview)
+        xsb = AutoScrollbar(tree_frame, orient="horizontal", command=self.tree.xview)
+        self.tree.configure(yscrollcommand=ysb.set, xscrollcommand=xsb.set)
+        self.tree.grid(row=0, column=0, sticky="nsew")
+        ysb.grid(row=0, column=1, sticky="ns")
+        xsb.grid(row=1, column=0, sticky="ew")
         self.tree.bind("<<TreeviewSelect>>", lambda e: self.show_selected_mode())
 
-        legend = ttk.Frame(left)
-        legend.pack(fill="x", pady=2)
+        legend = ttk.Frame(upper)
+        legend.pack(side="bottom", fill="x", pady=2, before=tree_frame)   # 狭いときは一覧の側が縮む
         for act in ACTIVITIES:
             tk.Label(legend, text=f"■ {act}", fg=_ACTIVITY_COLORS[act]).pack(side="left", padx=4)
         self._tr(ttk.Label(legend, foreground="#555555"), "gui.legend").pack(side="left")
 
-        self.report = ScrolledText(left, height=12, wrap="none", font=_report_font(self))
-        self.report.pack(fill="both", expand=True, pady=(4, 0))
+        self.report = ScrolledText(split, height=8, wrap="none", font=self.text_font)
+        split.add(self.report, weight=1)
         self.report.configure(state="disabled")
 
         # 右: 3D 表示
@@ -527,6 +572,7 @@ class VibrationApp(ttk.Frame):
             direction = t("dir.acoustic") if m.acoustic else m.direction_label
             self.tree.insert("", "end", iid=str(i - 1), tags=(tag,),
                              values=(i, m.label, m.degeneracy, m.activity, direction, detail))
+        self._fit_columns()
         if selection:
             self.tree.selection_set(selection)
             self.tree.see(selection[0])

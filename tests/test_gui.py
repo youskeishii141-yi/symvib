@@ -36,3 +36,44 @@ def test_error_log_returns_its_path(tmp_path, monkeypatch):
     monkeypatch.setattr(gui, "_ERROR_LOG", str(target))
     assert gui._write_error_log("test traceback") == str(target)
     assert "test traceback" in target.read_text(encoding="utf-8")
+
+
+def _tk_root():
+    tk = pytest.importorskip("tkinter")
+    try:
+        return tk.Tk()
+    except tk.TclError:
+        pytest.skip("no display")
+
+
+def test_mode_list_rows_are_taller_than_the_font_at_high_dpi():
+    """高 DPI (Tk の拡大率 2) でも、モード一覧の行の高さがフォントの高さを上回る
+    (固定のピクセル値の行で、日本語・英語の文字の上下が切れていた)。"""
+    from tkinter import ttk
+    root = _tk_root()
+    try:
+        root.tk.call("tk", "scaling", 2.0)
+        from symvib.gui import VibrationApp
+        app = VibrationApp(root)
+        rowheight = int(ttk.Style(root).lookup("Modes.Treeview", "rowheight"))
+        assert rowheight >= app.text_font.metrics("linespace") + 4
+        assert str(app.report.cget("font")) == str(app.text_font)   # 一覧とレポートは同じフォント
+        app._fit_columns()
+        heading = app.tree.heading("label", "text")
+        assert int(app.tree.column("label", "width")) >= app.head_font.measure(heading)
+    finally:
+        root.destroy()
+
+
+def test_scrollbar_hides_when_the_content_fits():
+    from symvib.gui import AutoScrollbar
+    root = _tk_root()
+    try:
+        sb = AutoScrollbar(root, orient="vertical")
+        sb.grid(row=0, column=0)
+        sb.set(0.0, 1.0)
+        assert not sb.grid_info()
+        sb.set(0.0, 0.5)
+        assert sb.grid_info()
+    finally:
+        root.destroy()

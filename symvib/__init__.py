@@ -8,7 +8,7 @@ from .common import AnalysisError, AnalysisResult, Mode
 
 __all__ = ["AnalysisError", "AnalysisResult", "Mode",
            "analyze_molecule", "load_molecule", "analyze_crystal", "load_crystal"]
-__version__ = "2.2.2"
+__version__ = "2.2.3"
 
 
 def __getattr__(name):
