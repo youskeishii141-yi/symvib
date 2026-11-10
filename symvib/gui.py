@@ -42,7 +42,8 @@ from mpl_toolkits.mplot3d.art3d import Line3DCollection              # noqa: E40
 
 # 3D 表示のタイトルに日本語を出せるよう、日本語フォントを優先 (なければ既定のフォント)
 matplotlib.rcParams["font.sans-serif"] = ["Yu Gothic", "Meiryo", "MS Gothic", "BIZ UDGothic",
-                                          "DejaVu Sans"]
+                                          "Hiragino Sans", "Noto Sans CJK JP", "IPAGothic",
+                                          "IPAexGothic", "DejaVu Sans"]
 from matplotlib.figure import Figure                                 # noqa: E402
 
 from . import __version__                                            # noqa: E402
@@ -119,14 +120,39 @@ _FRAMES = 24              # アニメーション 1 周期のコマ数
 _FRAME_MS = 50            # コマの間隔 [ms]
 
 
-def _report_font(root):
-    """レポート欄のフォント: 日本語も桁がそろう等幅フォントを優先 (11 pt)。"""
-    import tkinter.font as tkfont
+# 日本語の字形 (日本の漢字の形) を持つフォント。前の方ほど優先する。
+# 等幅 (レポートの桁がそろう) のものを先に並べる。Windows・macOS・Linux の順
+JAPANESE_FONTS = ("BIZ UDゴシック", "BIZ UDGothic", "ＭＳ ゴシック", "MS Gothic",
+                  "Osaka−等幅", "Osaka-Mono", "Noto Sans Mono CJK JP", "IPAGothic",
+                  "IPAゴシック", "VL Gothic",
+                  "Yu Gothic UI", "Yu Gothic", "游ゴシック", "Meiryo", "メイリオ",
+                  "BIZ UDPゴシック", "BIZ UDPGothic", "Hiragino Sans", "ヒラギノ角ゴシック",
+                  "Noto Sans CJK JP", "IPAexGothic", "IPAexゴシック")
+DEFAULT_FONT_SIZE = 11
+FONT_SIZES = tuple(range(8, 25))
+
+
+def _font_families(root):
+    """選べるフォント名 (日本語のフォントを先頭に。Windows の縦書き用 @ フォントは除く)。"""
+    families = {f for f in tkfont.families(root) if f and not f.startswith("@")}
+    japanese = [f for f in JAPANESE_FONTS if f in families]
+    return japanese + sorted(families - set(japanese), key=str.lower)
+
+
+def _report_font(root, settings=None):
+    """モード一覧・レポートのフォント (名前, 大きさ)。保存した設定があればそれを使い、なければ
+    日本語の字形を持つ等幅フォントを優先する (無いと中国語の字形のフォントで代用されることがある)。"""
+    settings = settings or {}
     families = set(tkfont.families(root))
-    for name in ("BIZ UDゴシック", "BIZ UDGothic", "ＭＳ ゴシック", "MS Gothic", "Consolas"):
+    size = settings.get("font_size")
+    size = size if isinstance(size, int) and size in FONT_SIZES else DEFAULT_FONT_SIZE
+    family = settings.get("font_family")
+    if isinstance(family, str) and family in families:
+        return (family, size)
+    for name in JAPANESE_FONTS + ("Consolas",):
         if name in families:
-            return (name, 11)
-    return ("TkFixedFont", 11)
+            return (name, size)
+    return ("TkFixedFont", size)
 
 
 def _best_view(axes):
@@ -196,6 +222,72 @@ class VibrationApp(ttk.Frame):
         self._build_widgets()
         self._set_kind("molecule")
         self.pack(fill="both", expand=True)
+
+    def _update_row_height(self):
+        """一覧の行の高さを、フォントの実際の高さに余白を足して決める。"""
+        line = self.text_font.metrics("linespace")
+        style = ttk.Style(self)
+        style.configure("Modes.Treeview", font=self.text_font,
+                        rowheight=line + max(6, line // 3))
+        style.configure("Modes.Treeview.Heading", font=self.head_font)
+
+    def apply_font(self, family, size, save=True):
+        """モード一覧とレポートのフォントを変える (選んだものは次回の起動時にも使う)。"""
+        for f in (self.text_font, self.head_font):
+            f.configure(family=family, size=size)
+        self._update_row_height()
+        self._fit_columns()
+        if save:
+            _save_settings(font_family=family, font_size=size)
+
+    def choose_font(self):
+        """フォントの種類と大きさを選ぶ小さな画面。"""
+        win = tk.Toplevel(self)
+        win.title(t("gui.font_title"))
+        win.transient(self.winfo_toplevel())
+        win.resizable(False, False)
+        families = _font_families(self)
+        fam_var = tk.StringVar(value=self.text_font.actual("family"))
+        size_var = tk.IntVar(value=abs(int(self.text_font.actual("size"))) or DEFAULT_FONT_SIZE)
+        preview_font = tkfont.Font(win, font=self.text_font)
+        body = ttk.Frame(win, padding=10)
+        body.pack(fill="both", expand=True)
+        ttk.Label(body, text=t("gui.font_family")).grid(row=0, column=0, sticky="w")
+        fam_box = ttk.Combobox(body, textvariable=fam_var, values=families, state="readonly",
+                               width=34, height=20)
+        fam_box.grid(row=0, column=1, sticky="ew", padx=4, pady=2)
+        ttk.Label(body, text=t("gui.font_size")).grid(row=1, column=0, sticky="w")
+        size_box = ttk.Combobox(body, textvariable=size_var, values=FONT_SIZES, state="readonly",
+                                width=5)
+        size_box.grid(row=1, column=1, sticky="w", padx=4, pady=2)
+        sample = tk.Label(body, text=t("gui.font_sample"), font=preview_font, anchor="w",
+                          justify="left", relief="groove", padx=6, pady=6)
+        sample.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(8, 4))
+        ttk.Label(body, text=t("gui.font_note"), foreground="#555555", wraplength=420,
+                  justify="left").grid(row=3, column=0, columnspan=2, sticky="w")
+
+        def preview(event=None):
+            preview_font.configure(family=fam_var.get(), size=int(size_var.get()))
+        fam_box.bind("<<ComboboxSelected>>", preview)
+        size_box.bind("<<ComboboxSelected>>", preview)
+
+        def ok():
+            self.apply_font(fam_var.get(), int(size_var.get()))
+            win.destroy()
+
+        def default():
+            family, size = _report_font(self)
+            fam_var.set(family)
+            size_var.set(size)
+            preview()
+        buttons = ttk.Frame(body)
+        buttons.grid(row=4, column=0, columnspan=2, sticky="e", pady=(8, 0))
+        ttk.Button(buttons, text=t("gui.font_default"), command=default).pack(side="left", padx=4)
+        ttk.Button(buttons, text=t("gui.ok"), command=ok).pack(side="left", padx=4)
+        ttk.Button(buttons, text=t("gui.cancel"), command=win.destroy).pack(side="left")
+        win.bind("<Escape>", lambda e: win.destroy())
+        win.grab_set()
+        return win
 
     def _fit_columns(self):
         """モード一覧の各列の幅を、見出しと中身の文字列の幅 (現在のフォント) に合わせる。
@@ -295,6 +387,7 @@ class VibrationApp(ttk.Frame):
         lang_box.bind("<<ComboboxSelected>>", self._on_language)
         lang_box.pack(side="right")
         self._tr(ttk.Label(top), "gui.language").pack(side="right", padx=(10, 2))
+        self._tr(ttk.Button(top, command=self.choose_font), "gui.font").pack(side="right", padx=(10, 0))
         self.progress = ttk.Progressbar(top, mode="determinate", length=90)
         self.progress.pack(side="right")
 
@@ -310,14 +403,11 @@ class VibrationApp(ttk.Frame):
         # モード一覧とレポートは同じフォント・同じ大きさで表示する。行の高さは
         # フォントの実際の高さ (画面の拡大率を反映したピクセル数) から決める
         # (固定のピクセル値だと、高 DPI の画面で文字の上下が行からはみ出して切れる)
-        self.text_font = tkfont.Font(self, font=_report_font(self))
-        self.head_font = tkfont.Font(self, font=_report_font(self))
+        font = _report_font(self, _load_settings())
+        self.text_font = tkfont.Font(self, font=font)
+        self.head_font = tkfont.Font(self, font=font)
         self.head_font.configure(weight="bold")
-        line = self.text_font.metrics("linespace")
-        style = ttk.Style(self)
-        style.configure("Modes.Treeview", font=self.text_font,
-                        rowheight=line + max(6, line // 3))
-        style.configure("Modes.Treeview.Heading", font=self.head_font)
+        self._update_row_height()
         self._cols = ("no", "label", "deg", "activity", "direction", "tensor")
         # 一覧 (+凡例) とレポートの境目は上下にドラッグして動かせる
         split = ttk.PanedWindow(left, orient="vertical")

@@ -77,3 +77,36 @@ def test_scrollbar_hides_when_the_content_fits():
         assert sb.grid_info()
     finally:
         root.destroy()
+
+
+def test_font_choice_is_applied_and_remembered(tmp_path, monkeypatch):
+    """フォントの変更が一覧の行の高さに反映され、次回の起動時にも使われる。"""
+    from tkinter import ttk
+    from symvib import gui
+    monkeypatch.setattr(gui, "_SETTINGS", str(tmp_path / "settings.json"))
+    root = _tk_root()
+    try:
+        app = gui.VibrationApp(root)
+        family = gui._font_families(root)[0]
+        app.apply_font(family, 20)
+        rowheight = int(ttk.Style(root).lookup("Modes.Treeview", "rowheight"))
+        assert rowheight >= app.text_font.metrics("linespace") + 4
+        assert gui._load_settings() == {"font_family": family, "font_size": 20}
+        assert gui._report_font(root, gui._load_settings()) == (family, 20)
+        # 存在しないフォント・範囲外の大きさは無視して既定に戻る
+        assert gui._report_font(root, {"font_family": "No Such Font", "font_size": 99}) == \
+            gui._report_font(root)
+    finally:
+        root.destroy()
+
+
+def test_japanese_fonts_are_listed_first():
+    from symvib import gui
+    root = _tk_root()
+    try:
+        families = gui._font_families(root)
+        japanese = [f for f in gui.JAPANESE_FONTS if f in families]
+        assert families[:len(japanese)] == japanese
+        assert not any(f.startswith("@") for f in families)
+    finally:
+        root.destroy()

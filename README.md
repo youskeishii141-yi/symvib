@@ -179,6 +179,10 @@ and the license notices of the bundled libraries (`THIRD_PARTY_LICENSES.txt`).
 4. The "Language / 言語" control at the upper right switches between English and Japanese (the
    default is English; the selected language is also used at the next start-up). Both the screen
    and the reports are switched.
+5. "Font…" at the upper right changes the font and its size for the mode list and the report (the
+   choice is also used at the next start-up). Japanese fonts are listed first; a monospaced font
+   keeps the columns of the report aligned. By default a monospaced font with Japanese glyph shapes
+   is used (BIZ UDGothic or MS Gothic on Windows).
 
 For the components a, b, c of degenerate modes (E, T, etc.), symmetry alone does not determine
 the orientation (any re-choice within the degenerate space is equally correct). The components
@@ -435,6 +439,9 @@ For details of the checks and a list of the errors found, see
   height of the font, and the text size matches the analysis report below. The columns fit their
   headings and contents, and scrollbars appear only when the list does not fit vertically or
   horizontally. The border between the list and the report can be dragged up and down.
+- GUI: "Font…" button to choose the font and size of the mode list and the report (remembered).
+  The default font is chosen among fonts with Japanese glyph shapes, so that kanji are not shown
+  with a Chinese-style fallback font.
 
 ### v2.2.2
 - The startup self-check now also covers failures while setting up the window (Tcl/Tk), not only

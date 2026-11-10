@@ -357,6 +357,17 @@ MESSAGES = {
     "gui.ok": ("OK", "OK"),
     "gui.cancel": ("Cancel", "キャンセル"),
     "gui.language": ("Language:", "言語:"),
+    "gui.font": ("Font…", "フォント…"),
+    "gui.font_title": ("Display font", "表示フォント"),
+    "gui.font_family": ("Font:", "フォント:"),
+    "gui.font_size": ("Size:", "大きさ:"),
+    "gui.font_default": ("Default", "既定に戻す"),
+    "gui.font_sample": ("Irrep A1g E2g  Raman+IR  symmetry-exact\n既約表現 縮退 活性 方向 推測(網目) 対称性確定 関与サイト",
+                        "Irrep A1g E2g  Raman+IR  symmetry-exact\n既約表現 縮退 活性 方向 推測(網目) 対称性確定 関与サイト"),
+    "gui.font_note": ("Used for the mode list and the report. A monospaced font keeps the columns of "
+                      "the report aligned. Japanese fonts are listed first.",
+                      "モード一覧とレポートに使います。等幅フォントを選ぶとレポートの桁がそろいます。"
+                      "日本語のフォントを先頭に並べています。"),
     "gui.start": ("Open a structure file or choose a demo.", "ファイルを開くか、デモを選んでください。"),
     "gui.cols": ("#|Irrep|Deg.|Activity|Direction|Raman tensor / sites",
                  "#|既約表現|縮退|活性|方向|Raman テンソル / 関与サイト"),
