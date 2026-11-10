@@ -24,6 +24,13 @@ if ($LASTEXITCODE -ne 0) { throw "PyInstaller が失敗しました" }
 if ($LASTEXITCODE -ne 0) { throw "THIRD_PARTY_LICENSES.txt の作成に失敗しました" }
 Copy-Item LICENSE, README.md, README.ja.md -Destination dist\SymVib\
 
+# 起動時の自己診断に使うファイル一覧を記録し、exe の中で解析まで動くか確かめる
+& $py tools\bundle_manifest.py dist\SymVib
+$out = Join-Path $env:TEMP "symvib_self_test.txt"
+$p = Start-Process -FilePath "dist\SymVib\SymVib.exe" -ArgumentList "--self-test", $out -PassThru -Wait
+Get-Content $out
+if ($p.ExitCode -ne 0) { throw "exe の self-test が失敗しました" }
+
 Compress-Archive -Path "dist\SymVib" -DestinationPath "dist\SymVib.zip" -Force
 Write-Host "完成: dist\SymVib\SymVib.exe"
 Write-Host "配布用: dist\SymVib.zip"

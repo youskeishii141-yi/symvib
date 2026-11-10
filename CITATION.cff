@@ -8,7 +8,7 @@ authors:
   - family-names: Ishii
     given-names: Yosuke
     affiliation: Nagoya Institute of Technology
-version: 2.2.0
+version: 2.2.1
 doi: 10.5281/zenodo.24085930
 license-url: "https://github.com/youskeishii141-yi/symvib/blob/main/LICENSE"  # MIT + Commons Clause
 repository-code: "https://github.com/youskeishii141-yi/symvib"

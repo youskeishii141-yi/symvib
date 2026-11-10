@@ -150,6 +150,11 @@ double-click `SymVib.exe` in the folder. No Python installation is required. The
 also contains this tool's license (`LICENSE`), the documentation (`README.md` / `README.ja.md`),
 and the license notices of the bundled libraries (`THIRD_PARTY_LICENSES.txt`).
 
+- Requirements: Windows 10 / 11 (64-bit). No installation or administrator rights are needed.
+- If "Windows protected your PC" (SmartScreen) appears the first time you start it, choose
+  "More info" → "Run anyway" (this is shown for apps without a digital signature).
+- If it does not start, see "[Troubleshooting](#troubleshooting)" below.
+
 1. Choose a `.xyz` or `.cif` file with "Open…" (molecule/crystal is selected automatically from
    the extension; for a molecular CIF, switch to "Molecule" and click "▶ Analyze"). You can also
    try water and graphite from "Demo".
@@ -200,6 +205,33 @@ that all three cell axes are easy to see.
 
 The colors in the list indicate activity (red = Raman, blue = IR, purple = both, gray = inactive),
 and the "Direction" column distinguishes "symmetry-exact / guess (network)".
+
+### Troubleshooting
+
+If SymVib does not start and shows a message such as "SymVib could not start" or "DLL load failed",
+try the following in order. When the startup fails, SymVib automatically checks the extracted
+files for missing or damaged ones and names them in the dialog.
+
+1. **Extract the zip again, completely**: delete the SymVib folder, right-click the downloaded
+   `SymVib.zip` → "Extract All", wait until the extraction has finished, and then start
+   `SymVib.exe`. Do not run the exe directly from the window that shows the contents of the zip.
+   A short location such as `C:\SymVib` is recommended.
+   Before extracting, right-clicking `SymVib.zip` → "Properties" → ticking "Unblock" at the bottom
+   → "OK" makes SmartScreen warnings and loading restrictions less likely.
+2. **Check whether security software quarantined files**: in Windows Security → "Virus & threat
+   protection" → "Protection history", look for quarantined SymVib files (such as `.dll` files).
+   If you use other security software, check its quarantine. On a PC managed by a university or
+   company, running apps may be restricted; ask the administrator.
+3. **Install the Microsoft Visual C++ Redistributable (x64)**: the required files are bundled with
+   SymVib, but installing it solves the problem on some PCs. Get the "X64" version from Microsoft's
+   official page (https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist).
+4. **Look at the details of the error**: they are saved in `%USERPROFILE%\symvib_error.log`
+   (for example `C:\Users\<user name>\symvib_error.log`). If the problem persists, please report it
+   on [Issues](https://github.com/youskeishii141-yi/symvib/issues) with the content of this file and
+   your Windows version.
+5. **Use it from Python**: even where the exe cannot be used, you can start the same GUI with
+   `python vibration_gui.py` after installing Python, following "Installation (for use from
+   Python)" below.
 
 ### For developers (building the exe)
 
@@ -381,6 +413,14 @@ For details of the checks and a list of the errors found, see
   terminates safely without outputting symmetry-species labels.
 
 ## Changelog
+
+### v2.2.1
+- When the distributed exe fails to start, it now checks the extracted files for missing ones
+  (an interrupted extraction or files quarantined by security software) and shows the missing
+  files and how to fix the problem (previously only NumPy's "DLL load failed" error was shown).
+- Added the system requirements and a "Troubleshooting" section to the README.
+- Stronger checks when building the exe: a self-test that runs the analyses inside the exe, a check
+  of the extracted zip, and a check that the diagnosis works when files are missing.
 
 ### v2.2.0 (public release)
 - Renamed the software to **SymVib** (Python package `symvib`, Windows version `SymVib.exe`;
