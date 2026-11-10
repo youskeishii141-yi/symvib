@@ -242,10 +242,13 @@ Windows の PowerShell で:
 
 GitHub では、`symvib/__init__.py` の `__version__` と同じ名前のタグ (例 `v2.1.1`) を
 push すると、GitHub Actions (`.github/workflows/release.yml`) が Windows 上でテスト・ビルド・
-起動確認を行い、`SymVib.zip` をそのタグのリリースに添付します
+起動確認を行い、インストーラ `SymVib-Setup.exe` と `SymVib.zip` をそのタグのリリースに添付します
 (リリース本文は `.github/release_notes/<タグ>.md`)。zip には `tools/third_party_notices.py` で
 作った `THIRD_PARTY_LICENSES.txt` (Python 本体と同梱ライブラリのライセンス全文) と `LICENSE`・
-README を入れます。
+README を入れます。インストーラは [Inno Setup](https://jrsoftware.org/isinfo.php) で作り
+(`installer/SymVib.iss`)、無音インストール → 自己診断 → アンインストールまで試してから添付します。
+手元で作るには、Inno Setup をインストールしてから `build_exe.ps1` の後に
+`ISCC.exe /DAppVersion=<版> installer\SymVib.iss` を実行します (出力は `dist\SymVib-Setup.exe`)。
 
 ## インストール (Python から使う場合)
 
@@ -392,6 +395,10 @@ python tests/sweep_space_groups.py # 230 空間群・530 設定の網羅
   フォントの実際の高さから決め、文字の大きさを下の解析結果 (レポート) とそろえた。列の幅は見出しと
   中身に合わせ、一覧が縦・横に収まらないときだけスクロールバーを出す。一覧とレポートの境目は
   上下にドラッグして動かせる。
+- 配布: Windows 用のインストーラ `SymVib-Setup.exe` を追加 (管理者権限不要、スタートメニューに登録、
+  「設定」→「アプリ」からアンインストール)。zip の展開が途中で止まる PC でも導入できる。zip 版も
+  引き続き配布する。
+- GUI: 3D 表示の文字 (タイトルなど) は、PC に日本語フォントが無いときは英語で表示する (文字化けの防止)。
 - GUI: 「フォント…」で、モード一覧とレポートのフォントと大きさを選べるようにした (次回も使う)。
   既定のフォントは日本語の字形を持つものから選び、漢字が中国語風の代替フォントで表示されないようにした。
 
