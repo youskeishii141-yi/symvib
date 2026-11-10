@@ -218,6 +218,21 @@ files for missing or damaged ones and names them in the dialog.
    A short location such as `C:\SymVib` is recommended.
    Before extracting, right-clicking `SymVib.zip` → "Properties" → ticking "Unblock" at the bottom
    → "OK" makes SmartScreen warnings and loading restrictions less likely.
+   **On some PCs, "Extract All" stops partway** (seen on a managed PC; if folders such as
+   `numpy.libs` or `_tcl_data` are missing from `_internal` after extraction, it stopped partway).
+   In that case open "PowerShell" from the Start menu and run the following lines one by one to
+   extract and start it (example for a zip saved in `Downloads`, extracted to `SymVib` in your user
+   folder). If something fails, the error is shown.
+   ```powershell
+   Unblock-File "$HOME\Downloads\SymVib.zip"
+   Expand-Archive -Path "$HOME\Downloads\SymVib.zip" -DestinationPath "$HOME\SymVib" -Force
+   & "$HOME\SymVib\SymVib\SymVib.exe"
+   ```
+   You can check the extraction with the self-test below (`RESULT: OK` at the end means it is fine).
+   ```powershell
+   Start-Process "$HOME\SymVib\SymVib\SymVib.exe" -ArgumentList "--self-test", "$HOME\symvib_check.txt" -Wait
+   Get-Content "$HOME\symvib_check.txt"
+   ```
 2. **Check whether security software quarantined files**: in Windows Security → "Virus & threat
    protection" → "Protection history", look for quarantined SymVib files (such as `.dll` files).
    If you use other security software, check its quarantine. On a PC managed by a university or
@@ -413,6 +428,13 @@ For details of the checks and a list of the errors found, see
   terminates safely without outputting symmetry-species labels.
 
 ## Changelog
+
+### v2.2.2
+- The startup self-check now also covers failures while setting up the window (Tcl/Tk), not only
+  failures to load modules (when an interrupted extraction left out `_tcl_data`, only "Can't find a
+  usable init.tcl" was shown).
+- For PCs on which "Extract All" stops partway, the README now explains how to extract with
+  PowerShell and how to run the self-test (`--self-test`).
 
 ### v2.2.1
 - When the distributed exe fails to start, it now checks the extracted files for missing ones

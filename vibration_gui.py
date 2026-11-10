@@ -72,6 +72,8 @@ How to fix / 対処:
    has finished, and use a short location such as C:\\SymVib.
    このフォルダを削除し、SymVib.zip を「すべて展開」で展開し直してください。展開が終わるまで
    待ってから起動し、C:\\SymVib のような短い場所を使ってください。
+   If "Extract All" stops partway, extract with PowerShell (README: "Troubleshooting").
+   「すべて展開」が途中で止まる場合は PowerShell で展開してください (README の「起動しないとき」)。
 2. Open Windows Security > Virus & threat protection > Protection history and check whether
    files of SymVib were quarantined. On a PC managed by your organization, ask the administrator.
    Windows セキュリティ >「ウイルスと脅威の防止」>「保護の履歴」で SymVib のファイルが隔離されて
@@ -105,7 +107,11 @@ def self_test(out_path):
     else:
         lines.append("bundle check: OK")
     try:
-        import tkinter                                                     # noqa: F401
+        import tkinter
+        root = tkinter.Tk()                    # Tcl/Tk のデータ (_tcl_data, _tk_data) まで確かめる
+        root.withdraw()
+        root.destroy()
+        lines.append("tcl/tk: OK")
         import matplotlib
         matplotlib.use("Agg")
         from symvib import gui                                             # noqa: F401
@@ -124,21 +130,32 @@ def self_test(out_path):
     return 0 if ok else 1
 
 
+def _startup_failed():
+    """起動 (読み込み・画面の初期化) の失敗を、欠けたファイルの診断つきで知らせて終了する。"""
+    details = traceback.format_exc()
+    problems = bundle_problems()
+    _write_log(details + ("\n".join(problems) if problems else "(no missing files)"))
+    _show_error(startup_failure_message(problems))
+    sys.exit(1)
+
+
 def main():
     argv = sys.argv[1:]
     if argv[:1] == ["--self-test"]:
         sys.exit(self_test(argv[1] if len(argv) > 1 else "symvib_self_test.txt"))
+    frozen = getattr(sys, "frozen", False)
     try:
         from symvib.gui import main as gui_main
-    except (ImportError, OSError):
-        details = traceback.format_exc()
-        if not getattr(sys, "frozen", False):
+    except Exception:                                 # noqa: BLE001
+        if not frozen:
             raise                                     # 開発環境ではそのまま例外を見せる
-        problems = bundle_problems()
-        _write_log(details + ("\n".join(problems) if problems else "(no missing files)"))
-        _show_error(startup_failure_message(problems))
-        sys.exit(1)
-    gui_main(argv)
+        _startup_failed()
+    try:
+        gui_main(argv)
+    except Exception:                                 # noqa: BLE001  (Tcl/Tk の初期化失敗など)
+        if not frozen:
+            raise
+        _startup_failed()
 
 
 if __name__ == "__main__":

@@ -74,6 +74,14 @@ jobs:
           if (-not (Select-String -Path "$env:RUNNER_TEMP\broken.txt" -Pattern "missing: _internal/numpy.libs/msvcp140" -Quiet)) {
             throw "欠けたファイルが診断に表示されませんでした"
           }
+          # 展開が途中で止まり、Tcl/Tk のデータが欠けた場合
+          Copy-Item dist\SymVib "$env:RUNNER_TEMP\broken2" -Recurse
+          Remove-Item "$env:RUNNER_TEMP\broken2\_internal\_tcl_data" -Recurse
+          $code = Invoke-SelfTest "$env:RUNNER_TEMP\broken2\SymVib.exe" "$env:RUNNER_TEMP\broken2.txt"
+          if ($code -eq 0) { throw "Tcl のデータが欠けているのに self-test が成功しました" }
+          if (-not (Select-String -Path "$env:RUNNER_TEMP\broken2.txt" -Pattern "missing: _internal/_tcl_data/" -Quiet)) {
+            throw "欠けた Tcl のデータが診断に表示されませんでした"
+          }
       - name: Smoke test (GUI starts and stays up)
         shell: pwsh
         run: |

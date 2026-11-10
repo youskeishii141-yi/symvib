@@ -184,6 +184,21 @@ Quantum ESPRESSO と連携し、力の計算に基づいて Γ 点フォノン�
    短い場所がおすすめです。
    展開する前に `SymVib.zip` を右クリック →「プロパティ」→ 下部の「許可する」にチェックを入れて
    「OK」を押しておくと、SmartScreen の警告や読み込みの制限を受けにくくなります。
+   **「すべて展開」が途中で止まる PC があります** (管理された PC で確認されています。展開後の
+   `_internal` フォルダに `numpy.libs` や `_tcl_data` などがなければ、展開が途中で止まっています)。
+   その場合は、スタートメニューから「PowerShell」を開き、次を 1 行ずつ実行して展開・起動して
+   ください (`Downloads` に保存した場合の例。展開先はユーザーフォルダの `SymVib`)。失敗したときは
+   エラーの内容が表示されます。
+   ```powershell
+   Unblock-File "$HOME\Downloads\SymVib.zip"
+   Expand-Archive -Path "$HOME\Downloads\SymVib.zip" -DestinationPath "$HOME\SymVib" -Force
+   & "$HOME\SymVib\SymVib\SymVib.exe"
+   ```
+   展開できたかは、次の自己診断で確かめられます (最後に `RESULT: OK` と出れば正常です)。
+   ```powershell
+   Start-Process "$HOME\SymVib\SymVib\SymVib.exe" -ArgumentList "--self-test", "$HOME\symvib_check.txt" -Wait
+   Get-Content "$HOME\symvib_check.txt"
+   ```
 2. **セキュリティソフトによる隔離を確認する**: Windows セキュリティ →「ウイルスと脅威の防止」→
    「保護の履歴」に、SymVib のファイル (`.dll` など) が隔離された記録がないか確認します。他の
    セキュリティソフトを使っている場合は、そのソフトの隔離の記録を確認してください。大学や会社が
@@ -356,6 +371,12 @@ python tests/sweep_space_groups.py # 230 空間群・530 設定の網羅
   ラベルは出力せずに安全に終了します。
 
 ## 変更履歴
+
+### v2.2.2
+- 起動時の自己診断を、読み込みの失敗だけでなく画面の初期化 (Tcl/Tk) の失敗にも広げた
+  (展開が途中で止まり `_tcl_data` が欠けた場合に「Can't find a usable init.tcl」とだけ表示されていた)。
+- 「すべて展開」が途中で止まる PC 向けに、PowerShell での展開と自己診断 (`--self-test`) の方法を
+  README に追加。
 
 ### v2.2.1
 - 配布版 (exe) が起動に失敗したとき、展開されたファイルの欠け (展開の中断やセキュリティソフトによる
