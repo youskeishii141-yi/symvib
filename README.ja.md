@@ -15,7 +15,7 @@ Python ツール群です。DFT フォノン計算を行わずに「どんな振
 量子化学・第一原理計算の役割です)。本ツールは対称性が決める「モードの種類・
 縮退・活性・変位パターン」を扱います。
 
-- 作者: 石井 陽祐 (ISHII Yosuke)、名古屋工業大学 (Nagoya Institute of Technology)
+- 作者: 石井 陽祐 (Yosuke Ishii)、名古屋工業大学 (Nagoya Institute of Technology)
 - ライセンス: [MIT ライセンス + Commons Clause](LICENSE) — 企業の研究開発を含めて無償で利用・改変・
   再配布できますが、**本ソフトウェア (改変版を含む) の販売は禁止**です (詳しくは「[ライセンス](#ライセンス)」)。
 - 問い合わせ: [GitHub Issues](https://github.com/youskeishii141-yi/symvib/issues)
@@ -504,7 +504,7 @@ python tests/sweep_space_groups.py # 230 空間群・530 設定の網羅
 共有されます) またはメールで受け付けます。ただし、すべてに対応できるとは限らず、返信が大きく
 遅れることや、返信できないこともあります。あらかじめご了承ください。
 
-- 石井 陽祐 (ISHII Yosuke)、名古屋工業大学 (Nagoya Institute of Technology)
+- 石井 陽祐 (Yosuke Ishii)、名古屋工業大学 (Nagoya Institute of Technology)
 - E-mail: ishii.yosuke [at] nitech.ac.jp ([at] を @ に置き換えてください)
 
 ## 引用
