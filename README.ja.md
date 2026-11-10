@@ -376,7 +376,7 @@ python tests/sweep_space_groups.py # 230 空間群・530 設定の網羅
 - 起動時の自己診断を、読み込みの失敗だけでなく画面の初期化 (Tcl/Tk) の失敗にも広げた
   (展開が途中で止まり `_tcl_data` が欠けた場合に「Can't find a usable init.tcl」とだけ表示されていた)。
 - 「すべて展開」が途中で止まる PC 向けに、PowerShell での展開と自己診断 (`--self-test`) の方法を
-  README に追加。
+  README に追加。自己診断の結果ファイルは、Windows PowerShell でも文字化けしないよう BOM 付き UTF-8 で書く。
 
 ### v2.2.1
 - 配布版 (exe) が起動に失敗したとき、展開されたファイルの欠け (展開の中断やセキュリティソフトによる

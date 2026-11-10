@@ -125,7 +125,7 @@ def self_test(out_path):
         ok = False
         lines += ["analysis: FAILED", traceback.format_exc()]
     lines.append("RESULT: " + ("OK" if ok else "FAILED"))
-    with open(out_path, "w", encoding="utf-8") as f:
+    with open(out_path, "w", encoding="utf-8-sig") as f:
         f.write("\n".join(lines) + "\n")
     return 0 if ok else 1
 

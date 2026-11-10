@@ -434,7 +434,8 @@ For details of the checks and a list of the errors found, see
   failures to load modules (when an interrupted extraction left out `_tcl_data`, only "Can't find a
   usable init.tcl" was shown).
 - For PCs on which "Extract All" stops partway, the README now explains how to extract with
-  PowerShell and how to run the self-test (`--self-test`).
+  PowerShell and how to run the self-test (`--self-test`). The self-test result is written as UTF-8
+  with a BOM so that Windows PowerShell displays it correctly.
 
 ### v2.2.1
 - When the distributed exe fails to start, it now checks the extracted files for missing ones
