@@ -40,16 +40,27 @@ matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg      # noqa: E402
 from mpl_toolkits.mplot3d.art3d import Line3DCollection              # noqa: E402
 
-# 3D 表示のタイトルに日本語を出せるよう、日本語フォントを優先 (なければ既定のフォント)
-matplotlib.rcParams["font.sans-serif"] = ["Yu Gothic", "Meiryo", "MS Gothic", "BIZ UDGothic",
-                                          "Hiragino Sans", "Noto Sans CJK JP", "IPAGothic",
-                                          "IPAexGothic", "DejaVu Sans"]
+# 3D 表示のタイトルに日本語を出せるよう、PC にある日本語フォントを優先する。
+# 日本語フォントが一つもない PC では、3D 表示の文字だけ英語にする (文字化けを避ける。フォントは同梱しない)
+_MPL_JAPANESE = ["Yu Gothic", "Meiryo", "MS Gothic", "BIZ UDGothic", "Hiragino Sans",
+                 "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", "Noto Sans JP", "IPAGothic",
+                 "IPAexGothic", "IPAPGothic", "VL Gothic", "TakaoGothic"]
+
+
+def _matplotlib_japanese_fonts():
+    from matplotlib import font_manager
+    names = {f.name for f in font_manager.fontManager.ttflist}
+    return [n for n in _MPL_JAPANESE if n in names]
+
+
+MPL_JAPANESE_FONTS = _matplotlib_japanese_fonts()
+matplotlib.rcParams["font.sans-serif"] = MPL_JAPANESE_FONTS + ["DejaVu Sans"]
 from matplotlib.figure import Figure                                 # noqa: E402
 
 from . import __version__                                            # noqa: E402
 from .common import (AnalysisError, ACTIVITIES, bond_pairs,          # noqa: E402
                      covalent_radius, display_z, element_symbol)
-from .i18n import LANGUAGES, get_language, set_language, t            # noqa: E402
+from .i18n import LANGUAGES, get_language, set_language, t, t_in      # noqa: E402
 
 _SETTINGS = os.path.join(os.path.expanduser("~"), ".symvib.json")
 AUTHOR = "Yosuke Ishii"
@@ -130,6 +141,13 @@ JAPANESE_FONTS = ("BIZ UDゴシック", "BIZ UDGothic", "ＭＳ ゴシック", "
                   "Noto Sans CJK JP", "IPAexGothic", "IPAexゴシック")
 DEFAULT_FONT_SIZE = 11
 FONT_SIZES = tuple(range(8, 25))
+
+
+def plot_t(key, **kw):
+    """3D 表示 (matplotlib) に出す文字。日本語フォントが無い PC では英語にする。"""
+    if get_language() == "ja" and not MPL_JAPANESE_FONTS:
+        return t_in("en", key, **kw)
+    return t(key, **kw)
 
 
 def _font_families(root):
@@ -757,9 +775,9 @@ class VibrationApp(ttk.Frame):
         arrows = disp[self.scene["parents"]] * self.scene["arrow_len"] * self.scale_var.get()
         idx = int(self.tree.selection()[0]) + 1
         suffix = f" ({chr(97 + k)})" if len(mode.displacements) > 1 else ""
-        kind = t("gui.acoustic") if mode.acoustic else mode.activity
-        guess = t("gui.plot_guess") if mode.refined else ""
-        return arrows, t("gui.plot_mode", i=idx, label=mode.label, comp=suffix, kind=kind) + guess
+        kind = plot_t("gui.acoustic") if mode.acoustic else mode.activity
+        guess = plot_t("gui.plot_guess") if mode.refined else ""
+        return arrows, plot_t("gui.plot_mode", i=idx, label=mode.label, comp=suffix, kind=kind) + guess
 
     def update_mode(self):
         """モード・成分・倍率・表示設定が変わったときに呼ぶ (視点は保つ)。"""
@@ -767,7 +785,7 @@ class VibrationApp(ttk.Frame):
             return
         self._stop_animation()
         arrows, title = self._current_arrows()
-        self.ax.set_title(title or t("gui.plot_structure"), fontsize=10)
+        self.ax.set_title(title or plot_t("gui.plot_structure"), fontsize=10)
         if arrows is not None and self.anim_var.get():
             self._anim_gen += 1
             self._anim_frame = 0
@@ -850,7 +868,7 @@ class VibrationApp(ttk.Frame):
         self.axes_ax.set_axis_off()
         self.ax.clear()
         self.ax.set_axis_off()
-        self.ax.text2D(0.5, 0.5, t("gui.plot_empty"), ha="center", va="center",
+        self.ax.text2D(0.5, 0.5, plot_t("gui.plot_empty"), ha="center", va="center",
                        transform=self.ax.transAxes, color="#888888")
         self.canvas.draw_idle()
 

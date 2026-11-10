@@ -36,6 +36,13 @@ def t(key: str, **kw) -> str:
     return text.format(**kw) if kw else text
 
 
+def t_in(lang: str, key: str, **kw) -> str:
+    """キーに対応する指定した言語 ("en" / "ja") の文字列。"""
+    en, ja = MESSAGES[key]
+    text = ja if lang == "ja" else en
+    return text.format(**kw) if kw else text
+
+
 class Msg:
     """表示時に現在の言語で整形される文字列。引数に Msg を入れ子にしてもよい。"""
 

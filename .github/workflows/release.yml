@@ -1,7 +1,8 @@
 name: Release exe
 
 # v* のタグを push すると、Windows でテスト → PyInstaller で GUI 版をビルド → 起動確認 →
-# SymVib.zip をそのタグのリリースに添付する (リリースがなければ作る)。
+# インストーラ SymVib-Setup.exe (Inno Setup) と SymVib.zip をそのタグのリリースに添付する
+# (リリースがなければ作る)。
 # リリース本文は .github/release_notes/<タグ>.md。
 # 手動実行 (workflow_dispatch) では、選んだブランチの先頭でビルドし、タグがなければ
 # リリース作成と同時にそのコミットへタグを作る。既にリリースがあれば zip を差し替える。
@@ -105,6 +106,41 @@ jobs:
           if (-not $p.WaitForExit(180000)) { Stop-Process -Id $p.Id -Force; throw "self-test がタイムアウト" }
           Get-Content $out
           if ($p.ExitCode -ne 0) { throw "展開した zip の self-test が失敗しました" }
+      - name: Installer (Inno Setup)
+        shell: pwsh
+        run: |
+          function Find-Iscc {
+            Get-ChildItem "C:\Program Files (x86)\Inno Setup*\ISCC.exe", "C:\Program Files\Inno Setup*\ISCC.exe" -ErrorAction SilentlyContinue |
+              Sort-Object FullName -Descending | Select-Object -First 1
+          }
+          $iscc = Find-Iscc
+          if (-not $iscc) {
+            choco install innosetup -y --no-progress
+            $iscc = Find-Iscc
+          }
+          if (-not $iscc) { throw "Inno Setup (ISCC.exe) が見つかりません" }
+          & $iscc.FullName "/DAppVersion=$($env:TAG.TrimStart('v'))" installer\SymVib.iss
+          if ($LASTEXITCODE -ne 0) { throw "インストーラの作成に失敗しました" }
+          "{0:N1} MB" -f ((Get-Item dist\SymVib-Setup.exe).Length / 1MB)
+      - name: Test the installer (silent install, self-test, uninstall)
+        shell: pwsh
+        run: |
+          $dir = "$env:RUNNER_TEMP\installed"
+          $p = Start-Process dist\SymVib-Setup.exe -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CURRENTUSER", "/DIR=`"$dir`"" -PassThru
+          if (-not $p.WaitForExit(600000)) { Stop-Process -Id $p.Id -Force; throw "インストールがタイムアウト" }
+          if ($p.ExitCode -ne 0) { throw "インストールに失敗しました (exit code $($p.ExitCode))" }
+          $out = "$env:RUNNER_TEMP\installed.txt"
+          $p = Start-Process -FilePath "$dir\SymVib.exe" -ArgumentList "--self-test", $out -PassThru
+          if (-not $p.WaitForExit(180000)) { Stop-Process -Id $p.Id -Force; throw "self-test がタイムアウト" }
+          Get-Content $out
+          if ($p.ExitCode -ne 0) { throw "インストールした exe の self-test が失敗しました" }
+          $shortcut = Join-Path ([Environment]::GetFolderPath("Programs")) "SymVib.lnk"
+          if (-not (Test-Path $shortcut)) { throw "スタートメニューのショートカットがありません" }
+          $p = Start-Process "$dir\unins000.exe" -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -PassThru
+          if (-not $p.WaitForExit(300000)) { Stop-Process -Id $p.Id -Force; throw "アンインストールがタイムアウト" }
+          Start-Sleep -Seconds 5      # アンインストーラは自分自身を消すため少し遅れて終わる
+          if (Test-Path "$dir\SymVib.exe") { throw "アンインストール後も exe が残っています" }
+          if (Test-Path $shortcut) { throw "アンインストール後もショートカットが残っています" }
       - name: List zip contents
         shell: pwsh
         run: |
@@ -123,11 +159,11 @@ jobs:
           $notes = ".github\release_notes\$env:TAG.md"
           gh release view $env:TAG *> $null
           if ($LASTEXITCODE -eq 0) {
-            gh release upload $env:TAG dist\SymVib.zip --clobber
+            gh release upload $env:TAG dist\SymVib-Setup.exe dist\SymVib.zip --clobber
           } elseif (Test-Path $notes) {
-            gh release create $env:TAG dist\SymVib.zip --title "$env:TAG" --notes-file $notes --target $env:GITHUB_SHA
+            gh release create $env:TAG dist\SymVib-Setup.exe dist\SymVib.zip --title "$env:TAG" --notes-file $notes --target $env:GITHUB_SHA
           } else {
-            gh release create $env:TAG dist\SymVib.zip --title "$env:TAG" --generate-notes --target $env:GITHUB_SHA
+            gh release create $env:TAG dist\SymVib-Setup.exe dist\SymVib.zip --title "$env:TAG" --generate-notes --target $env:GITHUB_SHA
           }
           if ($LASTEXITCODE -ne 0) { throw "リリースへの添付に失敗しました" }
           $global:LASTEXITCODE = 0
