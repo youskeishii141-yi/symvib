@@ -144,13 +144,21 @@ and [docs/README_frozen_phonon.md](docs/README_frozen_phonon.md) for details.
 
 ### For users (distribution version)
 
-Download `SymVib.zip` from
-[Releases](https://github.com/youskeishii141-yi/symvib/releases), extract it, and
-double-click `SymVib.exe` in the folder. No Python installation is required. The zip
-also contains this tool's license (`LICENSE`), the documentation (`README.md` / `README.ja.md`),
-and the license notices of the bundled libraries (`THIRD_PARTY_LICENSES.txt`).
+Download one of the following from [Releases](https://github.com/youskeishii141-yi/symvib/releases/latest). No Python installation is required.
 
-- Requirements: Windows 10 / 11 (64-bit). No installation or administrator rights are needed.
+- **`SymVib-Setup.exe` (recommended)**: an installer. Double-click it and follow the wizard; then
+  start SymVib from "SymVib" in the Start menu. No administrator rights are needed (by default it
+  installs for the current user only, into `%LOCALAPPDATA%\Programs\SymVib`). To update, run the
+  installer of the new version in the same way. Uninstall it from Windows "Settings" → "Apps".
+- **`SymVib.zip`**: a version that runs without installation; start `SymVib.exe` in the extracted
+  folder. Because the zip contains many files (more than 2,000), Windows' built-in "Extract All"
+  stops partway on some PCs; in that case extract it as described in
+  "[Troubleshooting](#troubleshooting)" below.
+
+Both contain this tool's license (`LICENSE`), the documentation (`README.md` / `README.ja.md`), and
+the license notices of the bundled libraries (`THIRD_PARTY_LICENSES.txt`).
+
+- Requirements: Windows 10 / 11 (64-bit). No administrator rights are needed.
 - If "Windows protected your PC" (SmartScreen) appears the first time you start it, choose
   "More info" → "Run anyway" (this is shown for apps without a digital signature).
 - If it does not start, see "[Troubleshooting](#troubleshooting)" below.
@@ -215,6 +223,9 @@ and the "Direction" column distinguishes "symmetry-exact / guess (network)".
 If SymVib does not start and shows a message such as "SymVib could not start" or "DLL load failed",
 try the following in order. When the startup fails, SymVib automatically checks the extracted
 files for missing or damaged ones and names them in the dialog.
+
+If the zip version does not start, first **use the installer (`SymVib-Setup.exe`)**. Most problems
+come from extracting the zip, and the installer needs no extraction.
 
 1. **Extract the zip again, completely**: delete the SymVib folder, right-click the downloaded
    `SymVib.zip` → "Extract All", wait until the extraction has finished, and then start
