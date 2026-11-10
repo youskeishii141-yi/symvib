@@ -8,6 +8,7 @@ authors:
   - family-names: Ishii
     given-names: Yosuke
     affiliation: Nagoya Institute of Technology
+    orcid: "https://orcid.org/0000-0003-0334-2228"
 version: 2.2.2
 doi: 10.5281/zenodo.24085930
 license-url: "https://github.com/youskeishii141-yi/symvib/blob/main/LICENSE"  # MIT + Commons Clause
